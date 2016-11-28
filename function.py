@@ -26,6 +26,27 @@ def getCookies():
 		else:
 			continue
 	return resdata
+def getFormData(url,text=''):
+	mid = getMid(url)
+	form_data = {
+	"pic_src":"",
+	"pic_id":"",
+	"appkey":"",
+	"mid":mid,
+	"style_type":1,
+	"mark":"",
+	"reason":text,
+	"location":"page_100605_home",
+	"module":"",
+	"page_module_id":"",
+	"refer_sort":"",
+	"is_comment_base":1,
+	"rank":"",
+	"rankid":"",
+	"_t":0
+	}
+	form_data = urllib.urlencode(form_data)
+	return form_data
 
 def verifi():
 	filedata = ""
@@ -79,6 +100,7 @@ def verifi():
 	response = urllib2.Request(postDataUrl,data=httpBody, headers=headers)
 	response = urllib2.urlopen(response)
 	response = response.read()
+	#print response
 	try:
 		p = re.compile('Result\":\"(.*)\",')
 		code = p.search(response).group(1)
@@ -89,3 +111,11 @@ def verifi():
 		print "Failed to get vefiri code.Please check your result_money!"
 		exit()
 
+def getMid(url):
+	headers = {
+	"Cookie":"SUB=_2.;"
+	}
+	r = requests.get(url,headers = headers,allow_redirects =False)
+	p = re.compile('mid=([0-9]+)&src')
+	mid = p.search(r.text).group(1)
+	return mid

@@ -27,6 +27,7 @@ class weiboLogin(threading.Thread):
         self.username = username
         self.password = password
         self.fp = fp
+        self.proxy = proxy
     def run(self):
         global isFinal
         username = self.username
@@ -119,6 +120,15 @@ class weiboLogin(threading.Thread):
             else:
                 formData = self.getFormData(username,psw,servertime,nonce,pubkey,rsakv)
                 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'}
+            #proxy
+            proxy = self.proxy
+            # print proxy
+            # exit()
+            if proxy != 0:
+                proxy_s = urllib2.ProxyHandler(proxy)
+                opener = urllib2.build_opener(proxy_s)
+                urllib2.install_opener(opener)
+
             req  = urllib2.Request(  
                     url = url,  
                     data = formData,  
@@ -162,3 +172,38 @@ class weiboLogin(threading.Thread):
             # fp_raw.write(text)  
             # fp_raw.close()  
             #print text  
+class weiboResend(threading.Thread):
+    url = ""
+    cookie = ""
+    text = ""
+    proxy = 0
+    target = "http://weibo.com/aj/v6/mblog/forward?ajwvr=6&domain=100605&__rnd=1480309451533"
+    def __init__(self,cookie,url,text='',proxy=0):
+        threading.Thread.__init__(self)
+        self.cookie = cookie
+        self.url = url
+        self.text = text
+        self.proxy = proxy
+
+    def run(self):
+        self.resend()
+    def resend(self):
+        headers = {
+        "Cookie":self.cookie,
+        "Content-Type":"application/x-www-form-urlencoded",
+        "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36",
+        "Referer":"http://weibo.com/zhaobenshan?refer_flag=1005055013_&is_all=1"
+        }
+        proxy = self.proxy
+        formData = function.getFormData(self.url,self.text)
+        if proxy != 0:
+            response = requests.post(url = self.target,data = formData,headers = headers,proxies = proxy)
+        else:
+            response = requests.post(url = self.target,data = formData,headers = headers)
+        resdata = response.text
+        resdata = json.loads(resdata)
+        status = resdata['code']
+        if status == "100001":
+            print resdata['msg']
+        else:
+            print "OK"
