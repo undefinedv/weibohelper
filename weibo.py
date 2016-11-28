@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-  
-########################  
-#author:Undefined
-#date:2016/11/18
-#login weibo  
-########################  
-  
+
+#import requests  
+#from bs4 import BeautifulSoup  
 import sys  
 import urllib  
-import urllib2  
+import urllib2
+import requests
 import cookielib  
 import base64  
 import re  
@@ -16,11 +14,25 @@ import rsa
 import binascii
 import threading
 from Queue import Queue
-#import requests  
-#from bs4 import BeautifulSoup  
-  
+import function
 #新浪微博的模拟登陆  
-class weiboLogin:  
+class weiboLogin(threading.Thread):
+    flag = 0
+    username = ""
+    password = ""
+    proxy = ""
+    fp = ""
+    def __init__(self,fp,username,password,proxy=0):
+        threading.Thread.__init__(self)
+        self.username = username
+        self.password = password
+        self.fp = fp
+    def run(self):
+        global isFinal
+        username = self.username
+        password = self.password
+        self.login(self.fp,username,password)
+
     def enableCookies(self):  
             #获取一个保存cookies的对象  
             cj = cookielib.CookieJar()  
@@ -65,7 +77,7 @@ class weiboLogin:
             return username  
   
      #获取需要提交的表单数据     
-    def getFormData(self,userName,password,servertime,nonce,pubkey,rsakv):  
+    def getFormData(self,userName,password,servertime,nonce,pubkey,rsakv,door=0):  
         userName = self.getUsername(userName)  
         psw = self.getPassword(password,servertime,nonce,pubkey)  
           
@@ -89,17 +101,24 @@ class weiboLogin:
             'prelt':'115',  
             'url':'http://weibo.com/ajaxlogin.php?framelogin=1&callback=parent.sinaSSOController.feedBackUrlCallBack',  
             'returntype':'META'  
-            }  
+            }
+        if door != 0:
+            form_data['door'] = door
+
         formData = urllib.urlencode(form_data)  
-        return formData  
+        return formData
   
     #登陆函数  
-    def login(self,username,psw):  
+    def login(self,fp,username,psw,door=0):
             self.enableCookies()  
             url = 'http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.18)'  
-            servertime,nonce,pubkey,rsakv = self.getServerData()  
-            formData = self.getFormData(username,psw,servertime,nonce,pubkey,rsakv)  
-            headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'}  
+            servertime,nonce,pubkey,rsakv = self.getServerData()
+            if door != 0:
+                formData = self.getFormData(username,psw,servertime,nonce,pubkey,rsakv,door['code'])
+                headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0',"Cookie":door['cookie']}
+            else:
+                formData = self.getFormData(username,psw,servertime,nonce,pubkey,rsakv)
+                headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'}
             req  = urllib2.Request(  
                     url = url,  
                     data = formData,  
@@ -107,33 +126,39 @@ class weiboLogin:
             )  
             result = urllib2.urlopen(req)  
             text = result.read()  
-            print text  
+            #print text  #html contents
             #还没完！！！这边有一个重定位网址，包含在脚本中，获取到之后才能真正地登陆  
             p=re.compile('location\.replace\(\'(.*)\'\)')
             try:  
                     login_url = p.search(text).group(1)
-                    print login_url  
+                    #print login_url
                     #由于之前的绑定，cookies信息会直接写入  
-                    urllib2.urlopen(login_url)  
-                    print "Login success!"  
+                    print "Login success!"
+                    headers = {
+                    "Cookie":"login_sid_t=410dee96cf06d6b3948135e93e8d18d1"
+                    }
+                    r = requests.get(login_url,headers=headers,allow_redirects = False)
+                    res = r.headers
+                    acookie = res['Set-Cookie']
+                    p = re.compile('SUB=.*?;')
+                    acookie = p.search(acookie).group(0)
+                    fp.write(acookie+'\n')
+                    fp.flush()
             except:  
-                    print 'Login error!'  
+                    if self.flag > 2:
+                        exit() 
+                    self.flag = self.flag + 1
+                    print 'Login error!'
+                    res = function.verifi()
+                    self.login(fp,username,psw,door=res)
                     return 0  
-  
+
             #访问主页，把主页写入到文件中  
-            url = 'http://weibo.com/u/2679342531/home?topnav=1&wvr=6'  
-            request = urllib2.Request(url)  
-            response = urllib2.urlopen(request)  
-            text = response.read()
-            fp_raw = open("config/cookies.database","w+")  
-            fp_raw.write(text)  
-            fp_raw.close()  
+            # url = 'http://weibo.com/u/2679342531/home?topnav=1&wvr=6'  
+            # request = urllib2.Request(url)  
+            # response = urllib2.urlopen(request)  
+            # text = response.read()
+            # fp_raw = open("config/cookies.database","w+")  
+            # fp_raw.write(text)  
+            # fp_raw.close()  
             #print text  
-            
-reload(sys)
-sys.setdefaultencoding( "utf-8" )
-wblogin = weiboLogin()
-print '新浪微博模拟登陆:'
-username = raw_input(u'用户名:')
-password = raw_input(u'密码:')
-wblogin.login(username,password)
