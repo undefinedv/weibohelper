@@ -21,8 +21,8 @@ import random
 def resendAll(url,texts=['hello!'],num=-1):
 	cookies = function.getCookies()
 	text = random.choice(texts)
-	#proxy = {"http":"127.0.0.1:8087"}
-	proxy = 0# set 0 to stop the proxy
+	proxy = {"http":"127.0.0.1:8087"}
+	#proxy = 0# set 0 to stop the proxy
 	tasks = []
 	if num == -1:
 		for cookie in cookies:
@@ -45,8 +45,8 @@ def loginAll():
 	print u'新浪微博模拟登陆:'
 	tasks = {}
 	accounts = function.getAccounts()
-	#proxy = {"http":"127.0.0.1:8087"}
-	proxy = 0
+	proxy = {"http":"127.0.0.1:8087"}
+	#proxy = 0
 	fp = open("config/cookies.database","a")
 	for account in accounts:
 		t = account.split(",")

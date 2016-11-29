@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+	<title>weibo_helper</title>
+	<style type="text/css">
+	.logins{
+		text-align: center;
+	}
+	#login{
+		height:75px;
+		width:200px;
+		margin-top:150px;
+		border:2px red solid;
+	}
+	#action{
+		display: none;
+	}
+	.form{
+		text-align: center;
+	}
+	.form input{
+		width:200px;
+		height:75px;
+		border:2px pink solid;
+
+	}
+	.form #url{
+		height:50px;
+		width:700px;
+	}
+	.form #num{
+		height:40px;
+		width:100px;
+	}
+	</style>
+	<script type="text/javascript">
+	function resend(){
+			var action = document.getElementById("action").value;
+			var text = document.getElementById("text").value;
+			text = escape(text);
+			var url = document.getElementById("url").value;
+			url = escape(url);
+			var num = document.getElementById("num").value;
+			host = "http://0.0.0.0:8080";
+			urls = host+"/?action="+action+"&text="+text+"&url="+url;
+			if(num>0){
+				urls = urls + "&num="+num
+			}
+			console.log(urls);
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET",urls,false);
+			xhr.send();
+	}
+	function login(){
+		urls = "http://0.0.0.0:8080?action=login";
+		console.log(urls);
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET",urls,false);
+		xhr.send();
+	}
+	</script>
+</head>
+<body>
+<div class = "logins">
+	<input type="button" onclick="login()" id="login" value="relogin">
+</div>
+<form class="form" action="?action=login">
+	<input type="text" id="action" value="resend">
+	<br>
+	<input type="text" id="text" placeholder="text">
+	<br>
+	<input type="text" id="url" placeholder="url">
+	<br>
+	<input type="text" id="num" placeholder="times">
+	<br>
+	<input type="button" onclick="resend()" value="submit">
+</form>
+</body>
+</html>
