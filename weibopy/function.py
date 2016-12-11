@@ -3,6 +3,7 @@ import urllib2
 import urllib
 import md5
 import re
+import os
 def getAccounts():
 	fp = open('config/accounts.txt','r')
 	data = fp.read()
@@ -119,3 +120,19 @@ def getMid(url):
 	p = re.compile('mid=([0-9]+)&src')
 	mid = p.search(r.text).group(1)
 	return mid
+
+def delCookie(cookie):
+	with open("config/cookies.database","r") as f:
+		with open("config/cookies.database.new","w") as g:
+			for line in f.readlines():
+				if cookie not in line:
+					g.write(line)
+	os.rename("config/cookies.database.new","config/cookies.database")
+
+def delAccount(account):
+	with open("config/accounts.txt","r") as f:
+		with open("config/accounts.txt.new","w") as g:
+			for line in f.readlines():
+				if account not in line:
+					g.write(line)
+	os.rename("config/accounts.txt.new","config/accounts.txt")

@@ -20,13 +20,13 @@ import function
 import random
 def resendAll(url,texts=['hello!'],num=-1):
 	cookies = function.getCookies()
-	text = random.choice(texts)
 	proxy = {"http":"127.0.0.1:8087"}
 	#proxy = 0# set 0 to stop the proxy
 	tasks = []
 	if num == -1:
 		for cookie in cookies:
-			tasks.append(weibo.weiboResend(cookie,url,text,proxy))
+			print 'step2'
+			tasks.append(weibo.weiboResend(cookie,url,random.choice(texts),proxy))
 	else:
 		flag = 0
 		for cookie in cookies:
@@ -47,6 +47,8 @@ def loginAll():
 	accounts = function.getAccounts()
 	proxy = {"http":"127.0.0.1:8087"}
 	#proxy = 0
+	fp = open("config/cookies.database","w")
+	fp.close()
 	fp = open("config/cookies.database","a")
 	for account in accounts:
 		t = account.split(",")

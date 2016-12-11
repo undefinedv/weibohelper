@@ -5,7 +5,9 @@ app=web.application(urls,globals())
 class index():
 	def GET(self):
 		res = ''
-		i = web.input(action = 'show',text='', url = '',num=-1)
+		i = web.input(action = 'show',text='', url = '',num = 1)
+		i.text = i.text.replace('%','\\')
+		i.text = i.text.decode('unicode_escape').encode('utf8')
 		text = i.text.split("$")
 		if i.action == 'login':
 			res = controler.loginAll()
