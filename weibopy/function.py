@@ -8,7 +8,7 @@ def getAccounts():
 	fp = open('config/accounts.txt','r')
 	data = fp.read()
 	resdata = []
-	data = data.split('\r\n')
+	data = data.split('\n')
 	for string in data:
 		if string != '':
 			resdata.append(string)
@@ -49,6 +49,27 @@ def getFormData(url,text=''):
 	form_data = urllib.urlencode(form_data)
 	return form_data
 
+def getFormDatat(url,text=''):
+        mid = getMid(url)
+        form_data = {
+        "act":"post",
+        "uid":"",
+        "appkey":"",
+        "mid":mid,
+        "style_type":1,
+        "mark":"",
+        "reason":text,
+        "location":"page_100605_home",
+        "module":"",
+        "page_module_id":"",
+        "refer_sort":"",
+        "is_comment_base":1,
+        "rank":"",
+        "rankid":"",
+        "_t":0
+        }
+        form_data = urllib.urlencode(form_data)
+        return form_data
 def verifi():
 	filedata = ""
 	res = {}

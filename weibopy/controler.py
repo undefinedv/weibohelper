@@ -23,6 +23,7 @@ def resendAll(url,texts=['hello!'],num=-1):
 	proxy = {"http":"127.0.0.1:8087"}
 	#proxy = 0# set 0 to stop the proxy
 	tasks = []
+	num = -1
 	if num == -1:
 		for cookie in cookies:
 			print 'step2'
@@ -33,7 +34,7 @@ def resendAll(url,texts=['hello!'],num=-1):
 			if flag >= num:
 				break
 			else:
-				tasks.append(weibo.weiboResend(cookie,url,text,proxy))
+				tasks.append(weibo.weiboResend(cookie,url,random.choice(texts),proxy))
 				flag += 1
 	for task in tasks:
 		task.start()

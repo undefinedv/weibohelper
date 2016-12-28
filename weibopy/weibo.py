@@ -88,7 +88,7 @@ class weiboLogin(threading.Thread):
             'from':'',  
             'savestate':'7',  
             'useticket':'1',  
-            'pagerefer':'http://weibo.com/p/1005052679342531/home?from=page_100505&mod=TAB&pids=plc_main',  
+            'pagerefer':'',  
             'vsnf':'1',  
             'su':userName,  
             'service':'miniblog',  
@@ -99,9 +99,10 @@ class weiboLogin(threading.Thread):
             'sp':psw,  
             'sr':'1366*768',  
             'encoding':'UTF-8',  
-            'prelt':'115',  
-            'url':'http://weibo.com/ajaxlogin.php?framelogin=1&callback=parent.sinaSSOController.feedBackUrlCallBack',  
-            'returntype':'META'  
+            'cdult':'2',
+            'prelt':'263',  
+            'domain':'weibo.com',
+            'returntype':'TEXT'  
             }
         if door != 0:
             form_data['door'] = door
@@ -111,16 +112,22 @@ class weiboLogin(threading.Thread):
   
     #登陆函数  
     def login(self,fp,username,psw,door=0):
+            door = function.verifi()
             self.enableCookies()  
             url = 'http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.18)'  
             servertime,nonce,pubkey,rsakv = self.getServerData()
             if door != 0:
                 formData = self.getFormData(username,psw,servertime,nonce,pubkey,rsakv,door['code'])
-                headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0',"Cookie":door['cookie']}
+                headers = {
+                'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0',
+                "Cookie":door['cookie'],
+                'x-forwarded-for':'127.0.0.1'
+                }
             else:
                 formData = self.getFormData(username,psw,servertime,nonce,pubkey,rsakv)
                 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'}
             proxy = self.proxy
+            proxy = 0#test
             if proxy != 0:
                 proxy_s = urllib2.ProxyHandler(proxy)
                 opener = urllib2.build_opener(proxy_s)
@@ -133,34 +140,54 @@ class weiboLogin(threading.Thread):
             )  
             result = urllib2.urlopen(req)  
             text = result.read()  
+            text = json.loads(text)
+
             #print text  #html contents
             #还没完！！！这边有一个重定位网址，包含在脚本中，获取到之后才能真正地登陆  
-            p=re.compile('location\.replace\(\'(.*)\'\)')
-            try:  
-                    login_url = p.search(text).group(1)
-                    #print login_url
-                    assert("retcode=0" in login_url)
-                    #由于之前的绑定，cookies信息会直接写入  
-                    headers = {
-                    "Cookie":"login_sid_t=410dee96cf06d6b3948135e93e8d18d1"
-                    }
-                    r = requests.get(login_url,headers=headers,allow_redirects = False)
-                    res = r.headers
-                    acookie = res['Set-Cookie']
-                    p = re.compile('SUB=.*?;')
-                    acookie = p.search(acookie).group(0)
-                    fp.write(acookie+'******'+username+','+psw+'\n')
-                    fp.flush()
-                    print "Login success!"
-                    return 1
-            except:  
-                    if self.flag > 2:
-                        exit() 
-                    self.flag = self.flag + 1
-                    print 'Login error!'
-                    res = function.verifi()
-                    self.login(fp,username,psw,door=res)
-                    return 0  
+            if 'ticket' in text:
+                ticket = text['ticket']
+                login_url = "http://passport.weibo.com/wbsso/login?callback=sinaSSOController.callbackLoginStatus&ticket="+urllib.quote(ticket)
+                headers = {
+                "Cookie":"login_sid_t=4d11ea0e55541792dd04b186c7bcede6;",
+                "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73",
+                'x-forwarded-for':'127.0.0.1'
+                }
+                r = requests.get(login_url,headers=headers,allow_redirects = False)
+                res = r.headers
+                acookie = res['Set-Cookie']
+                p = re.compile('SUB=.*?;')
+                acookie = p.search(acookie).group(0)
+                fp.write(acookie+'******'+username+','+psw+'\n')
+                fp.flush()
+                print "Login success!"
+                return 1
+            else:  
+                if self.flag > 2:
+                    exit() 
+                self.flag = self.flag + 1
+                print 'Login error!'
+                res = function.verifi()
+                self.login(fp,username,psw,door=res)
+                return 0  
+            # p=re.compile('location\.replace\(\'(.*)\'\)')
+            # try:  
+            #         login_url = p.search(text).group(1)
+            #         #print login_url
+            #         assert("retcode=0" in login_url)
+            #         #由于之前的绑定，cookies信息会直接写入  
+            #         headers = {
+            #         "Cookie":"login_sid_t=410dee96cf06d6b3948135e93e8d18d1"
+            #         }
+            #         r = requests.get(login_url,headers=headers,allow_redirects = False)
+            #         res = r.headers
+            #         acookie = res['Set-Cookie']
+            #         p = re.compile('SUB=.*?;')
+            #         acookie = p.search(acookie).group(0)
+            #         fp.write(acookie+'******'+username+','+psw+'\n')
+            #         fp.flush()
+            #         print "Login success!"
+            #         return 1
+
 
             #访问主页，把主页写入到文件中  
             # url = 'http://weibo.com/u/2679342531/home?topnav=1&wvr=6'  
@@ -178,6 +205,7 @@ class weiboResend(threading.Thread):
     text = ""
     proxy = 0
     target = "http://weibo.com/aj/v6/mblog/forward?ajwvr=6&domain=100605&__rnd=1480309451533"
+   # target = "http://weibo.com/aj/v6/comment/add?ajwvr=6&__rnd=1482909949593"
     def __init__(self,cookie,url,text='',proxy=0):
         threading.Thread.__init__(self)
         tmp = cookie.split("******")
@@ -198,12 +226,13 @@ class weiboResend(threading.Thread):
         "Referer":"http://weibo.com/zhaobenshan?refer_flag=1005055013_&is_all=1"
         }
         proxy = self.proxy
+	proxy = 0
         formData = function.getFormData(self.url,self.text)
         if proxy != 0:
             response = requests.post(url = self.target,data = formData,headers = headers,proxies = proxy,allow_redirects = False)
         else:
             response = requests.post(url = self.target,data = formData,headers = headers,allow_redirects = False)
-        #封号检测
+        #封号检测:
         resdata = response.text
         ac_test = response.headers
         if 'Location' in ac_test:
