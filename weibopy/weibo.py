@@ -22,7 +22,7 @@ class weiboLogin(threading.Thread):
     password = ""
     proxy = ""
     fp = ""
-    def __init__(self,fp,username,password,proxy=0):
+    def __init__(self,fp,username,password,proxy=-1):
         threading.Thread.__init__(self)
         self.username = username
         self.password = password
@@ -127,8 +127,7 @@ class weiboLogin(threading.Thread):
                 formData = self.getFormData(username,psw,servertime,nonce,pubkey,rsakv)
                 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'}
             proxy = self.proxy
-            proxy = 0#test
-            if proxy != 0:
+            if proxy != -1:
                 proxy_s = urllib2.ProxyHandler(proxy)
                 opener = urllib2.build_opener(proxy_s)
                 urllib2.install_opener(opener)
@@ -204,9 +203,9 @@ class weiboResend(threading.Thread):
     account = ""
     text = ""
     proxy = 0
-    target = "http://weibo.com/aj/v6/mblog/forward?ajwvr=6&domain=100605&__rnd=1480309451533"
-   # target = "http://weibo.com/aj/v6/comment/add?ajwvr=6&__rnd=1482909949593"
-    def __init__(self,cookie,url,text='',proxy=0):
+    #target = "http://weibo.com/aj/v6/mblog/forward?ajwvr=6&domain=100605&__rnd=1480309451533"
+    target = "http://weibo.com/p/aj/v6/mblog/add?ajwvr=6&domain=101515&__rnd=1487056397372"
+    def __init__(self,cookie,url,text='',proxy=-1):
         threading.Thread.__init__(self)
         tmp = cookie.split("******")
         self.cookie = tmp[0]
@@ -221,19 +220,21 @@ class weiboResend(threading.Thread):
     def resend(self):
         headers = {
         "Cookie":self.cookie,
+	"X-Requested-With":"XMLHttpRequest",
         "Content-Type":"application/x-www-form-urlencoded",
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.73 Safari/537.36",
         "Referer":"http://weibo.com/zhaobenshan?refer_flag=1005055013_&is_all=1"
         }
         proxy = self.proxy
-	proxy = 0
-        formData = function.getFormData(self.url,self.text)
-        if proxy != 0:
+        formData = function.getFormDatac(self.url,self.text)
+        if proxy != -1:
             response = requests.post(url = self.target,data = formData,headers = headers,proxies = proxy,allow_redirects = False)
         else:
             response = requests.post(url = self.target,data = formData,headers = headers,allow_redirects = False)
         #封号检测:
         resdata = response.text
+        print resdata
+        print formData
         ac_test = response.headers
         if 'Location' in ac_test:
             location = ac_test['Location']
@@ -256,5 +257,11 @@ class weiboResend(threading.Thread):
         status = resdata['code']
         if status == "100001":
             print resdata['msg']
+	if status == "100003":
+            print "Cookie失效,now evil angel is trying to delete the invalid cookie!"
+	    function.delCookie(self.cookie)
+            print 'delete cookie success!'
+	    return 1
         else:
+	    print status
             print "OK"

@@ -45,7 +45,7 @@ def verifi():
 	# data.append('submit')
 	# data.append(boundary)
 	httpBody = '\r\n'.join(data)
-	postDataUrl = 'http://api.ruokuai.com/create.json'
+	postDataUrl = 'http://http://118.178.8.168/create.json'
 	response = urllib2.Request(postDataUrl,data=httpBody, headers=headers)
 	response = urllib2.urlopen(response)
 	response = response.read()

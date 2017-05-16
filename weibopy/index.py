@@ -1,25 +1,20 @@
-import web
-import controler
-urls=('/.*','index')
-app=web.application(urls,globals())
-class index():
-	def GET(self):
-		res = ''
-		i = web.input(action = 'show',text='', url = '',num = 1)
-		i.text = i.text.replace('%','\\')
-		i.text = i.text.decode('unicode_escape').encode('utf8')
-		text = i.text.split("$")
-		if i.action == 'login':
-			res = controler.loginAll()
-		elif i.action == 'resend':
-			res = controler.resendAll(i.url,text,i.num)
-		return "result :" + res
-		#return render.index(i.name,i.age)
-# class flush():
-# 	def GET(self):
-# 		return "This is flush action"
+#encoding:utf-8
+from controler import *
+from sys import argv
+from random import random
 if __name__ == "__main__":
-	app.run()
+	if len(argv) < 2:
+		print "usage:python index.py urladdress example:python index.py http://weibo.com/p/10151501_61744481 [is_proxy]"
+		exit()
+	print "ok,the software is running! website is:"+argv[1]
+	turl = argv[1]
+	is_proxy = -1
+	if len(argv)>2:
+		is_proxy = argv[2]
+	text = "我正在 #音乐人先锋榜# 为 @汪苏泷 "+turl+"打榜！好音乐需要用行动来支持，你也来为喜欢的音乐人加油吧！"
+	num = -1
+	resendAll(turl,text,num)
+		
 
 
 # 0.0.0.0:8080/?action=login login

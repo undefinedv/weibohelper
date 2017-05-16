@@ -50,15 +50,14 @@ def getFormData(url,text=''):
 	return form_data
 
 def getFormDatat(url,text=''):
-        mid = getMid(url)
+        #mid = getMid(url)
+	mid = "4056943054056608"
         form_data = {
         "act":"post",
-        "uid":"",
-        "appkey":"",
+        "forward":"1",
+        "isroot":"1",
         "mid":mid,
-        "style_type":1,
-        "mark":"",
-        "reason":text,
+        "content":text,
         "location":"page_100605_home",
         "module":"",
         "page_module_id":"",
@@ -66,6 +65,37 @@ def getFormDatat(url,text=''):
         "is_comment_base":1,
         "rank":"",
         "rankid":"",
+        "_t":0
+        }
+        form_data = urllib.urlencode(form_data)
+        return form_data
+def getFormDatac(url,text=''):
+	pdetail = url.split("/")
+	pdetail = pdetail[-1]
+	content = urllib.quote(text)
+	print text
+	form_data = {
+        "id":"",
+        "domain":"",
+        "module":"share_audio",
+        "title":"",
+        "content":content,
+        "api_url":"",
+        "spr":"",
+        "extraurl":"",
+        "is_stock":"",
+        "location":"page_101515_home",
+        "text":text,
+        "appkey":"",
+        "style_type":1,
+        "pic_id":"",
+        "pdetail":pdetail,
+        "rank":0,
+        "rankid":"",
+        "pub_source":"page_2",
+        "longtext":1,
+        "topic_id":"1022%3A",
+        "pub_type":"dialog",
         "_t":0
         }
         form_data = urllib.urlencode(form_data)

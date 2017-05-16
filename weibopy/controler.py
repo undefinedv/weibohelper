@@ -18,23 +18,25 @@ from Queue import Queue
 import weibo
 import function
 import random
-def resendAll(url,texts=['hello!'],num=-1):
+def resendAll(url,texts="",num=-1):
 	cookies = function.getCookies()
 	proxy = {"http":"127.0.0.1:8087"}
-	#proxy = 0# set 0 to stop the proxy
+	proxy = -1# set 0 to stop the proxy
 	tasks = []
 	num = -1
 	if num == -1:
 		for cookie in cookies:
 			print 'step2'
-			tasks.append(weibo.weiboResend(cookie,url,random.choice(texts),proxy))
+			text = texts+str(int(random.random()*1000000))
+			tasks.append(weibo.weiboResend(cookie,url,text,proxy))
 	else:
 		flag = 0
 		for cookie in cookies:
 			if flag >= num:
 				break
 			else:
-				tasks.append(weibo.weiboResend(cookie,url,random.choice(texts),proxy))
+				text = texts+str(int(random.random()*1000000))
+				tasks.append(weibo.weiboResend(cookie,url,text,proxy))
 				flag += 1
 	for task in tasks:
 		task.start()
@@ -42,14 +44,13 @@ def resendAll(url,texts=['hello!'],num=-1):
 		task.join()
 	return "resend OK"
 
-def loginAll():
+def loginAll(proxy = -1):
 	print u'新浪微博模拟登陆:'
 	tasks = {}
 	accounts = function.getAccounts()
-	proxy = {"http":"127.0.0.1:8087"}
-	#proxy = 0
-	fp = open("config/cookies.database","w")
-	fp.close()
+	preset_proxy = {"http":"127.0.0.1:8087"}
+	if proxy == -2:
+		proxy = preset_proxy
 	fp = open("config/cookies.database","a")
 	for account in accounts:
 		t = account.split(",")
